@@ -47,6 +47,14 @@ export function isPointing(lm: Landmark[]): boolean {
   return indexUp && othersDown;
 }
 
+/** Star gesture: middle finger up, others curled. This creates star particles. */
+export function isStarGesture(lm: Landmark[]): boolean {
+  const middleUp = lm[12].y < lm[10].y - 0.03;
+  const othersDown =
+    lm[8].y > lm[6].y && lm[16].y > lm[14].y && lm[20].y > lm[18].y;
+  return middleUp && othersDown;
+}
+
 /** Bone pairs for drawing the hand skeleton. */
 export const HAND_CONNECTIONS: [number, number][] = [
   [0, 1], [1, 2], [2, 3], [3, 4],

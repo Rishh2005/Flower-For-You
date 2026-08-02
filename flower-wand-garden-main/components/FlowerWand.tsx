@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { HandLandmarker } from "@mediapipe/tasks-vision";
-import { burst, plant, step, type Flower } from "@/lib/garden";
-import { createHandLandmarker, HAND_CONNECTIONS, INDEX_TIP, isOpenHand, isPointing, WRIST } from "@/lib/hands";
+import { burst, plant, step, starBurst, stepStars, plantStars, type Flower, type Star } from "@/lib/garden";
+import { createHandLandmarker, HAND_CONNECTIONS, INDEX_TIP, MIDDLE_TIP, isOpenHand, isPointing, isStarGesture, WRIST } from "@/lib/hands";
 import { loadFlowers } from "@/lib/loadFlowers";
 
 /** Frames of open palm required before a burst fires — kills flicker-explosions. */
@@ -18,13 +18,17 @@ export default function FlowerWand() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const gardenRef = useRef<Flower[]>([]);
+  const starsRef = useRef<Star[]>([]);
   const imagesRef = useRef<HTMLImageElement[]>([]);
   const landmarkerRef = useRef<HandLandmarker | null>(null);
   const rafRef = useRef<number>(0);
   const lastVideoTimeRef = useRef(-1);
   const lastPointsRef = useRef<(Point | null)[]>([null, null]);
+  const lastStarPointRef = useRef<Point | null>(null);
   const openFramesRef = useRef(0);
   const lastBurstRef = useRef(0);
+  const starFramesRef = useRef(0);
+  const lastStarRef = useRef(0);
   const handsRef = useRef<Point[][]>([]);
 
   const [running, setRunning] = useState(false);
@@ -84,7 +88,9 @@ export default function FlowerWand() {
       handsRef.current = hands.map((lm) => lm.map((p) => toScreen(p.x, p.y)));
 
       const anyOpen = hands.some((lm) => isOpenHand(lm));
+      const anyStar = hands.some((lm) => isStarGesture(lm));
       openFramesRef.current = anyOpen ? openFramesRef.current + 1 : 0;
+      starFramesRef.current = anyStar ? starFramesRef.current + 1 : 0;
 
       const cooling = now - lastBurstRef.current < BURST_COOLDOWN_MS;
 
@@ -93,6 +99,19 @@ export default function FlowerWand() {
         const origin = toScreen(openHand[WRIST].x, openHand[WRIST].y);
         burst(gardenRef.current, origin.x, origin.y);
         lastBurstRef.current = now;
+        lastPointsRef.current = [null, null];
+        lastStarPointRef.current = null;
+      } else if (anyStar) {
+        // Plant stars along the middle finger trail continuously
+        const starHand = hands.find((lm) => isStarGesture(lm))!;
+        const tip = toScreen(starHand[MIDDLE_TIP].x, starHand[MIDDLE_TIP].y);
+        lastStarPointRef.current = plantStars(
+          starsRef.current,
+          tip.x,
+          tip.y,
+          lastStarPointRef.current
+        );
+        // Reset flower tracking when in star mode
         lastPointsRef.current = [null, null];
       } else if (!anyOpen) {
         // Plant from each pointing hand independently.
@@ -113,11 +132,17 @@ export default function FlowerWand() {
         });
         // Forget stale hands so a returning hand starts a fresh stroke.
         for (let i = hands.length; i < 2; i++) lastPointsRef.current[i] = null;
+        lastStarPointRef.current = null;
+      } else {
+        // Reset all tracking when palm is open
+        lastPointsRef.current = [null, null];
+        lastStarPointRef.current = null;
       }
     }
 
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     step(gardenRef.current, ctx, now);
+    stepStars(starsRef.current, ctx, now);
 
     if (showSkeleton) {
       ctx.lineWidth = 2;
@@ -197,9 +222,9 @@ export default function FlowerWand() {
 
       {!running && (
         <div className="start">
-          <h1>Flower Wand</h1>
+          <h1>✨ Flower For You</h1>
           <p>
-            Point your index finger to grow flowers. Open your hand to scatter them.
+            Point your index finger to plant flowers. Open your hand to scatter them. Point your middle finger for sparkles!
           </p>
           {error && <p className="error">{error}</p>}
           <button onClick={start} disabled={status !== ""}>
@@ -208,7 +233,7 @@ export default function FlowerWand() {
         </div>
       )}
 
-      {running && <div className="hud">Point to plant · Open your hand to scatter</div>}
+      {running && <div className="hud">Index: plant · Palm: scatter · Middle: sparkles · S: toggle skeleton</div>}
     </main>
   );
 }

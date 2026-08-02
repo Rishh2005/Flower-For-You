@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flower Wand",
+  title: "Flower For You",
   description: "Draw with your finger, grow a garden, open your hand to scatter it.",
 };
 

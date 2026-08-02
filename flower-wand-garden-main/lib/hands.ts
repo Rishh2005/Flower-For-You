@@ -22,6 +22,7 @@ export async function createHandLandmarker(): Promise<HandLandmarker> {
 
 /** MediaPipe landmark indices. */
 export const INDEX_TIP = 8;
+export const MIDDLE_TIP = 12;
 export const WRIST = 0;
 
 type Landmark = { x: number; y: number; z: number };
@@ -45,6 +46,14 @@ export function isPointing(lm: Landmark[]): boolean {
   const othersDown =
     lm[12].y > lm[10].y && lm[16].y > lm[14].y && lm[20].y > lm[18].y;
   return indexUp && othersDown;
+}
+
+/** Star gesture: middle finger up, others curled. This creates star particles. */
+export function isStarGesture(lm: Landmark[]): boolean {
+  const middleUp = lm[12].y < lm[10].y - 0.03;
+  const othersDown =
+    lm[8].y > lm[6].y && lm[16].y > lm[14].y && lm[20].y > lm[18].y;
+  return middleUp && othersDown;
 }
 
 /** Bone pairs for drawing the hand skeleton. */

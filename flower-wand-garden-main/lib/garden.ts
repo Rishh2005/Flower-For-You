@@ -32,21 +32,21 @@ export type Star = {
 
 /** Tuning knobs — all in one place so you can taste-test quickly. */
 export const CONFIG = {
-  minSpacing: 18, // px between consecutive spawns along a stroke
+  minSpacing: 16, // px between consecutive spawns along a stroke
   sizeMin: 20,
   sizeMax: 60,
-  growMs: 260, // pop-in duration
-  breatheMs: 620, // breathing period
+  growMs: 150, // pop-in duration - faster
+  breatheMs: 800, // breathing period - slightly slower for visual interest
   breatheAmount: 0.09, // ±9% scale
-  gravity: 0.12,
-  drag: 0.985,
-  fade: 0.012, // alpha lost per frame during a burst
+  gravity: 0.28, // increased for faster fall
+  drag: 0.92, // reduced for faster movement (was 0.985)
+  fade: 0.028, // faster fade (was 0.012)
   maxFlowers: 420, // oldest get culled past this
-  maxPerFrame: 10, // cap so a fast swipe can't dump hundreds at once
+  maxPerFrame: 12, // cap so a fast swipe can't dump hundreds at once
   starSizeMin: 12,
   starSizeMax: 24,
-  starGrowMs: 180,
-  starFade: 0.018,
+  starGrowMs: 120, // faster star growth
+  starFade: 0.035, // faster star fade
   maxStars: 200,
 };
 
@@ -141,11 +141,11 @@ export function burst(garden: Flower[], originX: number, originY: number) {
     if (f.state === "burst") continue;
     const angle =
       Math.atan2(f.y - originY, f.x - originX) + rand(-0.3, 0.3);
-    const power = rand(6, 15);
+    const power = rand(10, 20); // increased power (was 6-15)
     f.state = "burst";
     f.vx = Math.cos(angle) * power;
-    f.vy = Math.sin(angle) * power - 3; // slight upward kick
-    f.spin = rand(-0.12, 0.12);
+    f.vy = Math.sin(angle) * power - 4; // stronger upward kick
+    f.spin = rand(-0.18, 0.18); // faster spin
   }
 }
 
@@ -188,8 +188,8 @@ export function plantStars(
       size: rand(CONFIG.starSizeMin, CONFIG.starSizeMax),
       rot: rand(0, Math.PI * 2),
       born: performance.now(),
-      vx: rand(-1, 1),
-      vy: rand(-2, -0.5),
+      vx: rand(-2.5, 2.5),
+      vy: rand(-3.5, -1),
       alpha: 1,
       sparkle: 0,
     });
@@ -220,8 +220,8 @@ export function plantStars(
       size: rand(CONFIG.starSizeMin, CONFIG.starSizeMax),
       rot: rand(0, Math.PI * 2),
       born: performance.now(),
-      vx: rand(-1.5, 1.5),
-      vy: rand(-2.5, -0.5),
+      vx: rand(-3, 3),
+      vy: rand(-4, -1),
       alpha: 1,
       sparkle: 0,
     });

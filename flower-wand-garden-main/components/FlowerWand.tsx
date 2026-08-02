@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { HandLandmarker } from "@mediapipe/tasks-vision";
-import { burst, plant, step, starBurst, stepStars, type Flower, type Star } from "@/lib/garden";
-import { createHandLandmarker, HAND_CONNECTIONS, INDEX_TIP, isOpenHand, isPointing, isStarGesture, WRIST } from "@/lib/hands";
+import { burst, plant, step, starBurst, stepStars, plantStars, type Flower, type Star } from "@/lib/garden";
+import { createHandLandmarker, HAND_CONNECTIONS, INDEX_TIP, MIDDLE_TIP, isOpenHand, isPointing, isStarGesture, WRIST } from "@/lib/hands";
 import { loadFlowers } from "@/lib/loadFlowers";
 
 /** Frames of open palm required before a burst fires — kills flicker-explosions. */
@@ -24,6 +24,7 @@ export default function FlowerWand() {
   const rafRef = useRef<number>(0);
   const lastVideoTimeRef = useRef(-1);
   const lastPointsRef = useRef<(Point | null)[]>([null, null]);
+  const lastStarPointRef = useRef<Point | null>(null);
   const openFramesRef = useRef(0);
   const lastBurstRef = useRef(0);
   const starFramesRef = useRef(0);
@@ -92,20 +93,27 @@ export default function FlowerWand() {
       starFramesRef.current = anyStar ? starFramesRef.current + 1 : 0;
 
       const cooling = now - lastBurstRef.current < BURST_COOLDOWN_MS;
-      const starCooling = now - lastStarRef.current < BURST_COOLDOWN_MS;
 
-      if (starFramesRef.current >= BURST_FRAMES && !starCooling) {
-        const starHand = hands.find((lm) => isStarGesture(lm))!;
-        const origin = toScreen(starHand[WRIST].x, starHand[WRIST].y);
-        starBurst(starsRef.current, origin.x, origin.y);
-        lastStarRef.current = now;
-      } else if (openFramesRef.current >= BURST_FRAMES && !cooling) {
+      if (openFramesRef.current >= BURST_FRAMES && !cooling) {
         const openHand = hands.find((lm) => isOpenHand(lm))!;
         const origin = toScreen(openHand[WRIST].x, openHand[WRIST].y);
         burst(gardenRef.current, origin.x, origin.y);
         lastBurstRef.current = now;
         lastPointsRef.current = [null, null];
-      } else if (!anyOpen && !anyStar) {
+        lastStarPointRef.current = null;
+      } else if (anyStar) {
+        // Plant stars along the middle finger trail continuously
+        const starHand = hands.find((lm) => isStarGesture(lm))!;
+        const tip = toScreen(starHand[MIDDLE_TIP].x, starHand[MIDDLE_TIP].y);
+        lastStarPointRef.current = plantStars(
+          starsRef.current,
+          tip.x,
+          tip.y,
+          lastStarPointRef.current
+        );
+        // Reset flower tracking when in star mode
+        lastPointsRef.current = [null, null];
+      } else if (!anyOpen) {
         // Plant from each pointing hand independently.
         hands.forEach((lm, i) => {
           if (i > 1) return;
@@ -124,9 +132,11 @@ export default function FlowerWand() {
         });
         // Forget stale hands so a returning hand starts a fresh stroke.
         for (let i = hands.length; i < 2; i++) lastPointsRef.current[i] = null;
-      } else if (anyStar) {
-        // Reset pointing tracking when entering star mode
+        lastStarPointRef.current = null;
+      } else {
+        // Reset all tracking when palm is open
         lastPointsRef.current = [null, null];
+        lastStarPointRef.current = null;
       }
     }
 

@@ -22,6 +22,7 @@ export async function createHandLandmarker(): Promise<HandLandmarker> {
 
 /** MediaPipe landmark indices. */
 export const INDEX_TIP = 8;
+export const MIDDLE_TIP = 12;
 export const WRIST = 0;
 
 type Landmark = { x: number; y: number; z: number };

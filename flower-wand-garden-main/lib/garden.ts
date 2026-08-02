@@ -170,6 +170,67 @@ export function starBurst(stars: Star[], originX: number, originY: number) {
   if (stars.length > CONFIG.maxStars) stars.splice(0, stars.length - CONFIG.maxStars);
 }
 
+/**
+ * Plant stars along the path from lastPoint to (x, y).
+ * Creates a continuous sparkle trail as the middle finger moves.
+ */
+export function plantStars(
+  stars: Star[],
+  x: number,
+  y: number,
+  lastPoint: { x: number; y: number } | null
+): { x: number; y: number } | null {
+  if (!lastPoint) {
+    // Start a new trail
+    stars.push({
+      x,
+      y,
+      size: rand(CONFIG.starSizeMin, CONFIG.starSizeMax),
+      rot: rand(0, Math.PI * 2),
+      born: performance.now(),
+      vx: rand(-1, 1),
+      vy: rand(-2, -0.5),
+      alpha: 1,
+      sparkle: 0,
+    });
+    return { x, y };
+  }
+
+  const dx = x - lastPoint.x;
+  const dy = y - lastPoint.y;
+  const dist = Math.hypot(dx, dy);
+  
+  // Use slightly larger spacing for stars than flowers for a more sparse trail
+  const starSpacing = CONFIG.minSpacing * 1.5;
+  if (dist < starSpacing) return lastPoint;
+
+  const steps = Math.min(
+    Math.floor(dist / starSpacing),
+    CONFIG.maxPerFrame
+  );
+
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const px = lastPoint.x + dx * t;
+    const py = lastPoint.y + dy * t;
+    
+    stars.push({
+      x: px,
+      y: py,
+      size: rand(CONFIG.starSizeMin, CONFIG.starSizeMax),
+      rot: rand(0, Math.PI * 2),
+      born: performance.now(),
+      vx: rand(-1.5, 1.5),
+      vy: rand(-2.5, -0.5),
+      alpha: 1,
+      sparkle: 0,
+    });
+  }
+
+  if (stars.length > CONFIG.maxStars) stars.splice(0, stars.length - CONFIG.maxStars);
+  return { x, y };
+}
+
 /** Advance and draw one frame. */
 export function step(garden: Flower[], ctx: CanvasRenderingContext2D, t: number) {
   for (let i = garden.length - 1; i >= 0; i--) {

@@ -212,7 +212,7 @@ export default function FlowerWand() {
 
       {!running && (
         <div className="start">
-          <h1>✨ Flower Wand</h1>
+          <h1>✨ Flower For You</h1>
           <p>
             Point your index finger to plant flowers. Open your hand to scatter them. Point your middle finger for sparkles!
           </p>

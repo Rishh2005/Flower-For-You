@@ -1,7 +1,8 @@
-# Flower Wand
+# Flower For You
 
 Point your index finger at the camera and flowers grow along the trail.
 Open your hand and they scatter like fireworks.
+Point your middle finger to create sparkling star bursts!
 
 ## Setup
 

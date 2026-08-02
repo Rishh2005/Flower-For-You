@@ -195,7 +195,18 @@ export default function FlowerWand() {
       rafRef.current = requestAnimationFrame(loop);
     } catch (err) {
       setStatus("");
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      let errorMsg = err instanceof Error ? err.message : "Something went wrong.";
+      
+      // Provide helpful messages for common errors
+      if (errorMsg.includes("NotAllowedError") || errorMsg.includes("permission denied")) {
+        errorMsg = "Camera permission denied. Please allow camera access and try again.";
+      } else if (errorMsg.includes("NotFoundError")) {
+        errorMsg = "No camera found. Please check your device.";
+      } else if (errorMsg.includes("NotReadableError")) {
+        errorMsg = "Camera is already in use. Close other apps using the camera.";
+      }
+      
+      setError(errorMsg);
     }
   }, [loop, resizeCanvas]);
 

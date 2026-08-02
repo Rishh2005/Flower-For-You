@@ -1,0 +1,79 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #0b0f0c;
+  color: #f3efe6;
+  overflow: hidden;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.stage video,
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mirror the camera so it reads like a mirror, not a video call. */
+.stage video { transform: scaleX(-1); }
+
+.hud {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(11, 15, 12, 0.55);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(243, 239, 230, 0.14);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.start {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 24px;
+}
+
+.start h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.01em; }
+.start p { opacity: 0.7; font-size: 14px; max-width: 34ch; margin: 0 auto; }
+
+.start button {
+  justify-self: center;
+  margin-top: 8px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 239, 230, 0.3);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.start button:hover { background: rgba(243, 239, 230, 0.1); }
+.start button:focus-visible { outline: 2px solid #f3efe6; outline-offset: 3px; }
+
+.error { color: #f0a5a5; font-size: 14px; max-width: 40ch; margin: 0 auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .start button { transition: none; }
+}
